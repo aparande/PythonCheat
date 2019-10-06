@@ -125,16 +125,10 @@ class CheatGame:
     def turnListener(self, data):
         if data != None:
             actual = data.get("lastPlayedCard", None)
-            gameOver = data.get('isGameOver', False)
             calls = data.get('calls', [])
         else:
             actual = None
-            gameOver = False
             calls = []
-
-        if gameOver:
-            self.endGame()
-            return
 
         self.engine.lastPlayedCard = actual
 
@@ -174,13 +168,15 @@ class CheatGame:
                     print(f"{self.engine.previousPlayer().name} was not bluffing! All players who thought he was have divided the pile amongst themselves")
                 
             self.callStream.close()
+
+            if self.engine.isGameOver():
+                self.endGame()
             
             if self.takeTurnAfterCalls:
                 self.takeTurn()
 
     def takeTurn(self):
         data = self.engine.takeTurn()
-
         if data != None:
             firebaseutils.clearCalls(self.roomKey)
             firebaseutils.logTurn(self.roomKey, data)
@@ -205,7 +201,7 @@ class CheatGame:
         firebaseutils.listenForTurn(turnStream, self.roomKey)
 
     def endGame(self):
-        print(f"Game Over: {self.engine.currentPlayer().name} won")
+        print(f"Game Over: {self.engine.previousPlayer().name} won")
         exit(0)
 
     def exitWithError(self):

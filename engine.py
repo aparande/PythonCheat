@@ -31,7 +31,7 @@ class Engine:
 
     def registerTurn(self):
         if self.lastPlayedCard is not None:
-            card = self.currentPlayer().madeMove(self.lastPlayedCard)
+            card = self.currentPlayer().madeMove(cardFromHash(self.lastPlayedCard))
             self.pile.addCard(card)
 
         self.playerIndex = (self.playerIndex + 1) % len(self.playerList)
@@ -40,9 +40,7 @@ class Engine:
     def takeTurn(self):
         if self.currentPlayer().name == self.localPlayer.name:
             card = self.localPlayer.chooseCard(self.currentRank + 2)
-            self.localPlayer.madeMove(card.hash())
-
-            return {"isGameOver": self.localPlayer.hand.isEmpty(), "lastPlayedCard": card.hash()}
+            return {"lastPlayedCard": card.hash()}
 
     def logCalls(self, callDict):
         for name in callDict:
@@ -69,7 +67,7 @@ class Engine:
             self.currentCalls = {}
             return -1
         else:
-            wrongPlayers = [self.players[name] for name in self.currentCalls if self.currentCalls[name] == True]
+            wrongPlayers = [self.players[name] for name in self.currentCalls if self.currentCalls[name]]
             for i in range(len(self.pile.cards)):
                 wrongPlayers[i % len(wrongPlayers)].addCardToHand(self.pile.cards.pop())
 
@@ -89,6 +87,12 @@ class Engine:
         
         self.players[playerName] = Player(playerName)
         return True
+
+    def isGameOver(self):
+        for player in self.playerList:
+            if player.hand.isEmpty():
+                return True
+        return False
 
     def currentPlayer(self):
         return self.playerList[self.playerIndex]

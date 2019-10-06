@@ -18,13 +18,11 @@ class Player:
         while card is None or not self.hand.containsCard(card):
             chosen = input("Please enter a valid card\n")
             card = cardFromTerminalString(chosen)
-
-        self.hand.removeCard(card.hash())
             
         return card
 
-    def madeMove(self, cardHash):
-        return self.hand.removeCard(cardHash)
+    def madeMove(self, card):
+        return self.hand.removeCard(card)
 
     def printHand(self):
         for card in self.hand.cards:

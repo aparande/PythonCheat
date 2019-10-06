@@ -9,7 +9,7 @@ class Deck(CardGroup):
 
     def generate(self):
         for suite in Card.SUITES.values():
-            for i in range(2, 15):
+            for i in range(2, 3):
                 self.cards.append(Card(suite, i))
 
     def shuffle(self):

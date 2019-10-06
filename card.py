@@ -13,7 +13,7 @@ class Card:
         self.value = value
 
     def hash(self):
-        return self.suite * 14 + self.value
+        return self.suite * 13 + (self.value - 2)
 
     def __str__(self):
         return self.printableSuite()+self.printableValue()
@@ -57,8 +57,8 @@ def cardFromTerminalString(terminalRepr):
         return None
 
 def cardFromHash(hashVal):
-    value = hashVal % 14
-    suite = hashVal // 14
+    value = hashVal % 13 + 2
+    suite = hashVal // 13
     return Card(suite, value)
 
 def strFromValue(val):

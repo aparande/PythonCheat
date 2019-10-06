@@ -5,12 +5,11 @@ class CardGroup:
     def addCard(self, card):
         self.cards.append(card)
 
-    #TODO: Make this remove a card, not a hash
-    def removeCard(self, cardHash):
+    def removeCard(self, removedCard):
         newHand = []
         popped = None
         for card in self.cards:
-            if card.hash() != cardHash:
+            if card.hash() != removedCard.hash():
                 newHand.append(card)
             else:
                 popped = card
@@ -29,3 +28,6 @@ class CardGroup:
 
     def isEmpty(self):
         return len(self.cards) == 0
+
+    def __str__(self):
+        return " ".join([str(card) for card in self.cards])
