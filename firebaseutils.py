@@ -34,6 +34,7 @@ firebase = pyrebase.initialize_app(config)
 db = firebase.database()
 
 def joinRoom(roomKey, name):
+    #TODO: Make sure no duplicate names
     room = db.child("rooms").child(roomKey).get()
     if not room.val():
         return False, "room key does not exist."
