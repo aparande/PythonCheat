@@ -6,6 +6,8 @@ from card import strFromValue
 import firebaseutils
 import random
 import time
+import _thread
+import os
 
 class CheatGame:
     def __init__(self):
@@ -207,11 +209,13 @@ class CheatGame:
 
     def endGame(self):
         print(f"Game Over: {self.engine.previousPlayer().name} won")
-        exit(0)
+        _thread.interrupt_main()
+        os._exit(0)
 
     def exitWithError(self):
         print("Oops. Something went wrong. Gameplay was ended")
-        exit(1)
+        _thread.interrupt_main()
+        os.exit(1)
 
     def printTurns(self):
         if self.engine.currentPlayer().name == self.localPlayer.name:
