@@ -13,6 +13,11 @@ class CheatGame:
         self.roomKey = None
         self.localPlayer = None
 
+        self.callStream = None
+        self.turnStream = None
+
+        self.takeTurnAfterCalls = False
+
     def printHeader(self):
         clearScreen()
         print("______________________________")
@@ -93,7 +98,10 @@ class CheatGame:
                     print("The host has started the game.")
                     startStream.close()
                     playerStream.close()
-                    self.loadGame()
+                    try:
+                        self.loadGame()
+                    except FirebaseError:
+                        self.exitWithError()
                     
             startStream = Stream(shouldStartGame)
             firebaseutils.listenForStart(startStream, self.roomKey)
@@ -111,28 +119,82 @@ class CheatGame:
         firebaseutils.startGame(self.roomKey, hands, self.engine.playerList)
         print(f"It is {self.engine.playerList[0].name}'s turn")
 
-        turnStream = Stream(self.turnListener)
-        firebaseutils.listenForTurn(turnStream, self.roomKey)
+        self.turnStream = Stream(self.turnListener)
+        firebaseutils.listenForTurn(self.turnStream, self.roomKey)
 
     def turnListener(self, data):
         if data != None:
             actual = data.get("lastPlayedCard", None)
-
-            if actual is not None and self.engine.currentPlayer().name != self.localPlayer.name:
-                print(f"{self.engine.currentPlayer().name} played a {strFromValue(self.engine.currentRank + 2)}")
-            
             gameOver = data.get('isGameOver', False)
+            calls = data.get('calls', [])
         else:
             actual = None
             gameOver = False
+            calls = []
 
         if gameOver:
             self.endGame()
             return
 
-        data = self.engine.takeTurn(actual)
+        self.engine.lastPlayedCard = actual
+
+        if actual is not None and self.engine.currentPlayer().name != self.localPlayer.name:
+            print(f"{self.engine.currentPlayer().name} played a {strFromValue(self.engine.currentRank + 2)}, but they might be lying")
+            self.engine.registerTurn()
+            self.takeTurnAfterCalls = True
+            didCall = self.makeDecision() == 'c'
+            firebaseutils.logCall(self.roomKey, self.localPlayer.name, didCall)
+            
+            self.callStream = Stream(self.callListener)
+            firebaseutils.listenForCall(self.callStream, self.roomKey)
+        else:
+            self.engine.registerTurn()
+            self.takeTurn()
+
+    def callListener(self, data):
+        if data is None:
+            return
+
+        result = self.engine.logCalls(data)
+        if self.engine.isReadyForNextPlayer:
+            if result == 0:
+                if self.engine.previousPlayer().name == self.localPlayer.name:
+                    print("Nobody thought you were bluffing :)")
+                else:
+                    print(f"Nobody thought {self.engine.previousPlayer().name} was bluffing")
+            elif result == -1:
+                if self.engine.previousPlayer().name == self.localPlayer.name:
+                    print("You were called on your bluff! You just picked up the pile :(")
+                else:
+                    print(f"{self.engine.previousPlayer().name} was bluffing!")
+            elif result == 1:
+                if self.engine.previousPlayer().name == self.localPlayer.name:
+                    print("People thought you bluffed, but they were wrong :)")
+                else:
+                    print(f"{self.engine.previousPlayer().name} was not bluffing! All players who thought he was have divided the pile amongst themselves")
+                
+            self.callStream.close()
+            
+            if self.takeTurnAfterCalls:
+                self.takeTurn()
+
+    def takeTurn(self):
+        data = self.engine.takeTurn()
+
         if data != None:
+            firebaseutils.clearCalls(self.roomKey)
             firebaseutils.logTurn(self.roomKey, data)
+            self.takeTurnAfterCalls = False
+            print("Waiting for other players to call your bluff or let you pass")
+            self.callStream = Stream(self.callListener)
+            firebaseutils.listenForCall(self.callStream, self.roomKey)
+
+    def makeDecision(self):
+        didCall = input("Type 'c' to call their bluff and 'p' to let them pass\n")
+        if didCall != 'c' and didCall != 'p':
+            didCall = input("Please type 'c' or 'p'")
+
+        return didCall
 
     def loadGame(self):
         time.sleep(0.1)
@@ -145,6 +207,10 @@ class CheatGame:
     def endGame(self):
         print(f"Game Over: {self.engine.currentPlayer().name} won")
         exit(0)
+
+    def exitWithError(self):
+        print("Oops. Something went wrong. Gameplay was ended")
+        exit(1)
 
 def main():
     game = CheatGame()

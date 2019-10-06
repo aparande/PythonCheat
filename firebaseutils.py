@@ -1,28 +1,9 @@
 import pyrebase
 from utils import randomString
 
-"""
-<!-- The core Firebase JS SDK is always required and must be listed first -->
-<script src="https://www.gstatic.com/firebasejs/7.1.0/firebase-app.js"></script>
+class FirebaseError(Exception):
+    pass
 
-<!-- TODO: Add SDKs for Firebase products that you want to use
-     https://firebase.google.com/docs/web/setup#available-libraries -->
-
-<script>
-  // Your web app's Firebase configuration
-  var firebaseConfig = {
-    apiKey: "AIzaSyCzEusI6pfHwO5I6rmu-uwsthK2UsTIHA0",
-    authDomain: "kpcgcheat.firebaseapp.com",
-    databaseURL: "https://kpcgcheat.firebaseio.com",
-    projectId: "kpcgcheat",
-    storageBucket: "",
-    messagingSenderId: "668356097878",
-    appId: "1:668356097878:web:5b79963ee98fdfeb97c8f7"
-  };
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-</script>
-"""
 config = {
   "apiKey": "AIzaSyCzEusI6pfHwO5I6rmu-uwsthK2UsTIHA0",
   "databaseURL": "https://kpcgcheat.firebaseio.com/",
@@ -63,13 +44,22 @@ def startGame(roomKey, hands, playerList):
     db.child("rooms").child(roomKey).child("turnList").set([p.name for p in playerList])
 
 def logTurn(roomKey, data):
-    db.child("rooms").child(roomKey).child("turnData").set(data)
+    db.child("rooms").child(roomKey).child("turnData").child("gameState").set(data)
 
-def loadGameData(roomKey):
+def logCall(roomKey, playerName, decision):
+    db.child("rooms").child(roomKey).child("turnData").child("bluffs").child(playerName).set(decision)
+
+def clearCalls(roomKey):
+    db.child("rooms").child(roomKey).child("turnData").child("bluffs").remove()
+
+def loadGameData(roomKey, retries = 3):
+    if retries == 0:
+        raise FirebaseError()
     hands = db.child("rooms").child(roomKey).child("hands").get()
     turnList = db.child("rooms").child(roomKey).child("turnList").get()
     if turnList == None:
-        print("Could not load turn list")
+        return loadGameData(roomKey, retries= retries - 1)
+
     return hands.val(), turnList.val()
 
 def listenToPlayers(listener, roomKey):
@@ -97,4 +87,17 @@ def listenForTurn(listener, roomKey):
         else:
             print(f"Received {message['event']} with data {message['data']}")
 
-    listener.stream = db.child("rooms").child(roomKey).child("turnData").stream(stream_handler)
+    listener.stream = db.child("rooms").child(roomKey).child("turnData").child("gameState").stream(stream_handler)
+
+def listenForCall(listener, roomKey):
+    def stream_handler(message):
+        if message['event'] == 'put':
+            path = message["path"].replace("/", '')
+            if path == '':
+                listener.respondToPut(message["data"])
+            else:
+                listener.respondToPut({path: message["data"]})
+        else:
+            print(f"Received {message['event']} with data {message['data']}")
+
+    listener.stream = db.child("rooms").child(roomKey).child("turnData").child("bluffs").stream(stream_handler)

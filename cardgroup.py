@@ -15,6 +15,8 @@ class CardGroup:
             else:
                 popped = card
 
+        if popped == None:
+            print("Couldn't find card to pop")
         self.cards = newHand
         return popped
         
