@@ -182,15 +182,20 @@ class CheatGame:
                 self.takeTurn()
 
     def takeTurn(self):
-        data = self.engine.takeTurn()
-        if data != None:
-            firebaseutils.clearCalls(self.roomKey)
-            clearScreen()
-            firebaseutils.logTurn(self.roomKey, data)
-            self.takeTurnAfterCalls = False
-            print("Waiting for other players to call your bluff or let you pass")
-            self.callStream = Stream(self.callListener)
-            firebaseutils.listenForCall(self.callStream, self.roomKey)
+        if self.engine.currentPlayer().name != self.localPlayer.name:
+            return
+
+        cardHash = self.engine.takeTurn()
+        #clearScreen()
+
+        firebaseutils.clearCalls(self.roomKey)
+        firebaseutils.logTurn(self.roomKey, cardHash)
+
+        print("Waiting for other players to call your bluff or let you pass")
+
+        self.takeTurnAfterCalls = False
+        self.callStream = Stream(self.callListener)
+        firebaseutils.listenForCall(self.callStream, self.roomKey)
 
     def makeDecision(self):
         didCall = input("Type 'c' to call their bluff and 'p' to let them pass\n")

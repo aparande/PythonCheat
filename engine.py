@@ -32,9 +32,8 @@ class Engine:
         self.currentRank = (self.currentRank + 1) % 13
 
     def takeTurn(self):
-        if self.currentPlayer().name == self.localPlayer.name:
-            card = self.localPlayer.chooseCard(self.currentRank + 2)
-            return {"lastPlayedCard": card.hash()}
+        card = self.currentPlayer().chooseCard(self.currentRank + 2)
+        return card.hash()
 
     def logCalls(self, callDict):
         for name in callDict:
@@ -54,10 +53,9 @@ class Engine:
             return 0
 
         requiredVal = (self.currentRank - 1) % 13
-        if requiredVal + 2 != self.lastPlayedCard: #Last person bluffed
-            for i in range(len(self.pile.cards)):
-                self.previousPlayer().addCardToHand(self.pile.cards.pop())
-
+        print(requiredVal, self.lastPlayedCard % 13)
+        if requiredVal != self.lastPlayedCard % 13: #Last person bluffed
+            self.pile.distributeTo([self.previousPlayer()])
             self.currentCalls = {}
             return -1
         else:

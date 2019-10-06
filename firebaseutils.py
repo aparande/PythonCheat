@@ -43,8 +43,8 @@ def startGame(roomKey, hands, playerList):
     db.child("rooms").child(roomKey).child("hands").set(hands)
     db.child("rooms").child(roomKey).child("turnList").set([p.name for p in playerList])
 
-def logTurn(roomKey, data):
-    db.child("rooms").child(roomKey).child("turnData").child("gameState").set(data)
+def logTurn(roomKey, cardHash):
+    db.child("rooms").child(roomKey).child("turnData").child("gameState").set({"lastPlayedCard": cardHash})
 
 def logCall(roomKey, playerName, decision):
     db.child("rooms").child(roomKey).child("turnData").child("bluffs").child(playerName).set(decision)
