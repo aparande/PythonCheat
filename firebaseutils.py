@@ -57,24 +57,44 @@ def createRoom(hostName):
     else:
         return False, "Could not create room. Please try again", {}
 
-def startGame(roomKey, hands):
+def startGame(roomKey, hands, playerList):
     db.child("rooms").child(roomKey).update({"open": False})
     db.child("rooms").child(roomKey).child("hands").set(hands)
+    db.child("rooms").child(roomKey).child("turnList").set([p.name for p in playerList])
 
-def listenToPlayers(stream, roomKey):
+def logTurn(roomKey, data):
+    db.child("rooms").child(roomKey).child("turnData").set(data)
+
+def loadGameData(roomKey):
+    hands = db.child("rooms").child(roomKey).child("hands").get()
+    turnList = db.child("rooms").child(roomKey).child("turnList").get()
+    if turnList == None:
+        print("Could not load turn list")
+    return hands.val(), turnList.val()
+
+def listenToPlayers(listener, roomKey):
     def stream_handler(message):
         if message['event'] == "put":
-            stream.respondToPut(message['data'])
+            listener.respondToPut(message['data'])
         else:
             print(f"Received {message['event']} with data {message['data']}")
 
-    stream.stream = db.child("rooms").child(roomKey).child("players").stream(stream_handler)
+    listener.stream = db.child("rooms").child(roomKey).child("players").stream(stream_handler)
 
-def listenForStart(stream, roomKey):
+def listenForStart(listener, roomKey):
     def stream_handler(message):
         if message['event'] == 'put':
-            stream.respondToPut(message["data"])
+            listener.respondToPut(message["data"])
         else:
             print(f"Received {message['event']} with data {message['data']}")
 
-    stream.stream = db.child("rooms").child(roomKey).child("open").stream(stream_handler)
+    listener.stream = db.child("rooms").child(roomKey).child("open").stream(stream_handler)
+
+def listenForTurn(listener, roomKey):
+    def stream_handler(message):
+        if message['event'] == 'put':
+            listener.respondToPut(message["data"])
+        else:
+            print(f"Received {message['event']} with data {message['data']}")
+
+    listener.stream = db.child("rooms").child(roomKey).child("turnData").stream(stream_handler)

@@ -3,11 +3,17 @@ class Card:
     DIAMOND = 1
     SPADE = 2
     CLUB = 3
-    SUITES = [HEART, DIAMOND, SPADE, CLUB]
+
+    SUITES = {"S": SPADE, "C": CLUB, "D": DIAMOND, "H": HEART}
+    FACES_TO_NUMS = {"J": 11, "Q": 12, "K": 13, "A": 14}
+    NUMS_TO_FACES = {11: "J", 12:"Q", 13:"K", 14:"A"}
 
     def __init__(self, suite, value):
         self.suite = suite
         self.value = value
+
+    def hash(self):
+        return self.suite * 14 + self.value
 
     def __str__(self):
         return self.printableSuite()+self.printableValue()
@@ -34,3 +40,29 @@ class Card:
             return "K"
         else:
             return "A"
+
+def cardFromTerminalString(terminalRepr):
+    try:
+        suite = terminalRepr[0]
+        value = terminalRepr[1:]
+
+        cardVal = value
+        if value in Card.FACES_TO_NUMS:
+            cardVal = Card.FACES_TO_NUMS[value]
+        else:
+            cardVal = int(cardVal)
+
+        return Card(Card.SUITES[suite], cardVal)
+    except:
+        return None
+
+def cardFromHash(hashVal):
+    value = hashVal % 14
+    suite = hashVal // 14
+    return Card(suite, value)
+
+def strFromValue(val):
+    if val in Card.NUMS_TO_FACES:
+        return Card.NUMS_TO_FACES[val]
+    else:
+        return val

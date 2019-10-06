@@ -4,12 +4,12 @@ from card import Card
 
 class Deck(CardGroup):
     def __init__(self):
-        self.cards = []
+        super().__init__()
         self.generate()
 
     def generate(self):
-        for suite in Card.SUITES:
-            for i in range(2, 14):
+        for suite in Card.SUITES.values():
+            for i in range(2, 15):
                 self.cards.append(Card(suite, i))
 
     def shuffle(self):
@@ -19,6 +19,3 @@ class Deck(CardGroup):
         if len(self.cards) == 0:
             return None
         return self.cards.pop()
-
-    def isEmpty(self):
-        return len(self.cards) == 0
