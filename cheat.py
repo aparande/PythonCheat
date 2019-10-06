@@ -33,7 +33,7 @@ class CheatGame:
         print("1. Join Room")
         print("2. Create Room")
         
-    def setup(self):
+    def start(self):
         self.printHeader()
 
         name = self.enterName()
@@ -68,7 +68,7 @@ class CheatGame:
         success, message, data = firebaseutils.createRoom(self.localPlayer.name)
         if not success:
             print("Could not create room key. Please try again")
-            exit(1)
+            os._exit(1)
         clearScreen()
         print(message)
         return data['roomKey']
@@ -120,9 +120,12 @@ class CheatGame:
     def startGame(self):
         hands = self.engine.listHands()
         self.engine.orderPlayers()
+
         firebaseutils.startGame(self.roomKey, hands, self.engine.playerList)
+
         clearScreen()
         self.printTurns()
+
         self.turnStream = Stream(self.turnListener)
         firebaseutils.listenForTurn(self.turnStream, self.roomKey)
 
@@ -186,7 +189,7 @@ class CheatGame:
             return
 
         cardHash = self.engine.takeTurn()
-        #clearScreen()
+        clearScreen()
 
         firebaseutils.clearCalls(self.roomKey)
         firebaseutils.logTurn(self.roomKey, cardHash)
@@ -232,7 +235,7 @@ class CheatGame:
 
 def main():
     game = CheatGame()
-    game.setup()
+    game.start()
 
 if __name__ == "__main__":
     main()
