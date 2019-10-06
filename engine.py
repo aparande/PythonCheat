@@ -1,4 +1,3 @@
-from deck import Deck
 import firebaseutils
 import random
 from player import Player
@@ -19,15 +18,10 @@ class Engine:
         self.pile = CardGroup()
     
     def startGame(self):
-        deck = Deck()
+        deck = CardGroup()
+        deck.fill()
         deck.shuffle()
-        while not deck.isEmpty():
-            for player in self.players.values():
-                topCard = deck.takeTop()
-                if topCard == None:
-                    break
-                
-                player.addCardToHand(topCard)
+        deck.distributeTo(self.players.values())
 
     def registerTurn(self):
         if self.lastPlayedCard is not None:
@@ -68,14 +62,12 @@ class Engine:
             return -1
         else:
             wrongPlayers = [self.players[name] for name in self.currentCalls if self.currentCalls[name]]
-            for i in range(len(self.pile.cards)):
-                wrongPlayers[i % len(wrongPlayers)].addCardToHand(self.pile.cards.pop())
-
+            self.pile.distributeTo(wrongPlayers)
             self.currentCalls = {}
             return 1
         
     def listHands(self):
-        return {p.name: [card.hash() for card in p.hand.cards] for p in self.players.values()}
+        return {p.name: [card.hash() for card in p.hand.getCards()] for p in self.players.values()}
 
     def orderPlayers(self):
         self.playerList = list(self.players.values())
