@@ -10,8 +10,6 @@ class Player:
         self.hand.addCard(card)
 
     def chooseCard(self, expectedCard):
-        print("It is your turn")
-        self.printHand()
         print("Please pick a card to play (e.g SJ -> Jack of Spades)")
         chosen = input(f"You are expected to play a {strFromValue(expectedCard)}, but you can always lie ;)\n")
         card = cardFromTerminalString(chosen)
@@ -25,6 +23,4 @@ class Player:
         return self.hand.removeCard(card)
 
     def printHand(self):
-        for card in self.hand.cards:
-            print(card, end=" ")
-        print()
+        print("Your hand:", self.hand)

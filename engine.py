@@ -95,6 +95,8 @@ class Engine:
         return False
 
     def currentPlayer(self):
+        if self.playerIndex == -1:
+            return self.playerList[0]
         return self.playerList[self.playerIndex]
 
     def previousPlayer(self):

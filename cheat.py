@@ -39,7 +39,7 @@ class CheatGame:
         
         self.printWelcome(name)
         choice = self.handleEntrance()
-
+        clearScreen()
         if choice == 1:
             success = False
             while not success:
@@ -67,6 +67,7 @@ class CheatGame:
         if not success:
             print("Could not create room key. Please try again")
             exit(1)
+        clearScreen()
         print(message)
         return data['roomKey']
 
@@ -87,7 +88,7 @@ class CheatGame:
         firebaseutils.listenToPlayers(playerStream, self.roomKey)
 
         if self.localPlayer.isHost:
-            shouldExit = input("Press a key when you are ready to start the game: ")
+            shouldExit = input("Press a key when you are ready to start the game: \n")
             playerStream.close()
 
             self.engine.startGame()
@@ -95,12 +96,13 @@ class CheatGame:
         else:
             def shouldStartGame(stillWaiting):
                 if not stillWaiting:
+                    clearScreen()
                     print("The host has started the game.")
                     startStream.close()
                     playerStream.close()
                     try:
                         self.loadGame()
-                    except FirebaseError:
+                    except firebaseutils.FirebaseError:
                         self.exitWithError()
                     
             startStream = Stream(shouldStartGame)
@@ -117,8 +119,8 @@ class CheatGame:
         hands = self.engine.listHands()
         self.engine.orderPlayers()
         firebaseutils.startGame(self.roomKey, hands, self.engine.playerList)
-        print(f"It is {self.engine.playerList[0].name}'s turn")
-
+        clearScreen()
+        self.printTurns()
         self.turnStream = Stream(self.turnListener)
         firebaseutils.listenForTurn(self.turnStream, self.roomKey)
 
@@ -151,6 +153,7 @@ class CheatGame:
 
         result = self.engine.logCalls(data)
         if self.engine.isReadyForNextPlayer:
+            clearScreen()
             if result == 0:
                 if self.engine.previousPlayer().name == self.localPlayer.name:
                     print("Nobody thought you were bluffing :)")
@@ -166,12 +169,13 @@ class CheatGame:
                     print("People thought you bluffed, but they were wrong :)")
                 else:
                     print(f"{self.engine.previousPlayer().name} was not bluffing! All players who thought he was have divided the pile amongst themselves")
-                
+            print()
             self.callStream.close()
 
             if self.engine.isGameOver():
                 self.endGame()
             
+            self.printTurns()
             if self.takeTurnAfterCalls:
                 self.takeTurn()
 
@@ -179,6 +183,7 @@ class CheatGame:
         data = self.engine.takeTurn()
         if data != None:
             firebaseutils.clearCalls(self.roomKey)
+            clearScreen()
             firebaseutils.logTurn(self.roomKey, data)
             self.takeTurnAfterCalls = False
             print("Waiting for other players to call your bluff or let you pass")
@@ -196,7 +201,7 @@ class CheatGame:
         time.sleep(0.1)
         hands, turnList = firebaseutils.loadGameData(self.roomKey)
         self.engine.setGameState(hands, turnList)
-
+        self.printTurns()
         turnStream = Stream(self.turnListener)
         firebaseutils.listenForTurn(turnStream, self.roomKey)
 
@@ -207,6 +212,14 @@ class CheatGame:
     def exitWithError(self):
         print("Oops. Something went wrong. Gameplay was ended")
         exit(1)
+
+    def printTurns(self):
+        if self.engine.currentPlayer().name == self.localPlayer.name:
+            print("It is your turn")
+        else:
+            print(f"It is {self.engine.currentPlayer().name}'s turn")
+        self.localPlayer.printHand()
+        print()
 
 def main():
     game = CheatGame()
