@@ -24,6 +24,9 @@ def joinRoom(roomKey, name):
         return False, "a game is in progress"
 
     playerData = room.val()["players"]
+    if len(playerData) >= 6:
+        return False, " only 6 people can play at once."
+
     playerData.append(name)
     db.child("rooms").child(roomKey).update({"players": playerData})
     return True, "Successfully joined room"

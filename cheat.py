@@ -80,7 +80,7 @@ class CheatGame:
             for p in data:
                 success = self.engine.addPlayer(p)
                 if recentlyJoined and success:
-                    print(f"{p} is already the room")
+                    print(f"{p} is already in the room")
                 elif success:
                     print(f"{p} joined the room")
 
@@ -90,7 +90,7 @@ class CheatGame:
         firebaseutils.listenToPlayers(playerStream, self.roomKey)
 
         if self.localPlayer.isHost:
-            shouldExit = input("Press a key when you are ready to start the game: \n")
+            self.waitForStart()
             playerStream.close()
 
             self.engine.startGame()
@@ -199,6 +199,11 @@ class CheatGame:
         self.takeTurnAfterCalls = False
         self.callStream = Stream(self.callListener)
         firebaseutils.listenForCall(self.callStream, self.roomKey)
+
+    def waitForStart(self):
+        shouldExit = input("Press a key when you are ready to start the game: \n")
+        while len(self.engine.players) == 1:
+            shouldExit = input("At least two people need to be in the game to start: \n")
 
     def makeDecision(self):
         didCall = input("Type 'c' to call their bluff and 'p' to let them pass\n")
