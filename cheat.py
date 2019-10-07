@@ -173,7 +173,7 @@ class CheatGame:
                 if self.engine.previousPlayer().name == self.localPlayer.name:
                     print("People thought you bluffed, but they were wrong :)")
                 else:
-                    print(f"{self.engine.previousPlayer().name} was not bluffing! All players who thought he was have divided the pile amongst themselves")
+                    print(f"{self.engine.previousPlayer().name} was not bluffing! All players who thought they were have divided the pile amongst themselves")
             print()
             self.callStream.close()
 

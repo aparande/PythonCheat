@@ -18,7 +18,7 @@ The objective of Cheat is very simple: to get rid of all your cards. It is best 
 
 First, the deck of cards is divided as evenly as possible among all of the players.
 
-The first round begins with the card of rank `2`. The first player places down a card and declares its rank to be `2`. If they have a card of rank `2`, they may play it, but they may also lie. All other players then have an opportunity to either call them on their bluff or let gameplay continue. If players call the bluff, if the initial player was indeed bluffing, they take the entire middle pile. If they were not bluffing, then all players who were wrong divide the pile in the middle among themselves. 
+The first round begins with the card of rank `2`. The first player places down a card and declares its rank to be `2`. If they have a card of rank `2`, they may play it, but they may also lie. All other players then have an opportunity to either call them on their bluff or let gameplay continue. When players call the bluff, if the initial player was indeed bluffing, they take the entire middle pile. If they were not bluffing, then all players who were wrong divide the pile in the middle among themselves. 
 
 The next player commences the subsequent round with a card of rank `3`. Gameplay continues until someone runs out of cards. When the round's designated rank reaches `A`, the next round will wrap around back to rank `2`.
 
@@ -32,15 +32,15 @@ In Cheat, it is imperative that other players have absolutely no knowledge about
 
 ### Why Firebase?
 
-I chose Firebase Realtime Database in particular because it is NoSQL, so it is much easier to store the unstructured data required to manage Game State than with a relational database. Moreover, because it is real-time, the game can be played in real-time with constant updates. Firebase also has well designed APIs to interact with the database as if it was a regular REST API.
+I chose Firebase Realtime Database in particular because it is NoSQL, so it is much easier to store the unstructured data required to manage the game state than with a relational database. Moreover, because it is real-time, the game can be played in real-time with constant updates. Firebase also has well designed APIs to interact with the database as if it was a regular REST API.
 
 ### Why Python
-As a scripting language, Python is incredily versatile in the programs it can create. Because I was using Firebase, I needed a language which made it easy to handle concurrency issues and act on events triggered in Real-time. Python has the capabilities readily available and it still has the object-oriented aspects of it which allow for clean but complex functionality.
+As a scripting language, Python is incredily versatile in the programs it can create. Because I was using Firebase, I needed a language which made it easy to handle concurrency issues and act on events triggered in real-time. Python has these capabilities readily available and it still has the object-oriented aspects which allow for clean but complex functionality.
 
 ## Code Structure
 ### Classes
 - `Card`: A model class to represent cards
-- `CardGroup`: A group of cards which can model a deck, a hand, or the center pile. Uses a HashMap like implementation to provide O(1) retrieval operations
+- `CardGroup`: A group of cards which can model a deck, a hand, or the center pile. Uses a HashMap-like implementation to provide O(1) retrieval operations
 - `CheatGame`: The game client which coordinates between the `Engine` and Firebase to show information and take input from the user.
 - `Engine`: The game engine which each user runs. It manages game rules and controls game flow
 - `Player`: A model object which represents a Player
@@ -49,13 +49,13 @@ As a scripting language, Python is incredily versatile in the programs it can cr
 - `firebaseutils.py`: Firebase utility functions to abstract away the Database implementation
 - `utils.py`: Minor utility functions
 
-By structuring this code in this way, I reduced the amount of data I needed to store in Firebase and made it easier to handle concurrency. Since each client maintains its own game state through the `Engine`, I do not need to store the entire game (each player and their hands, the pile, etc) in Firebase. Instead I can just update the last card played and have every client update its internal state accordingly.
+By structuring the code in this way, I reduced the amount of data I needed to store in Firebase and made it easier to handle concurrency. Since each client maintains its own game state through the `Engine`, I do not need to store the entire game (each player and their hands, the pile, etc) in Firebase. Instead I can just update the last card played and have every client update its internal state accordingly.
 
-The `Stream` class also makes it easier to handle concurrency because I can pass it a method which gets called every time an update is made to Firebase. This allows the program to be asynchronous and update in real time.
+The `Stream` class also makes it easier to handle concurrency because I can pass it a method which gets called every time an update is made to Firebase. This allows the game to be asynchronous and update in real time.
 
-I chose to create `Player`, `Card`, and `CardGroup` model classes because having these abstractions which reflect real objects makes the code easier to read and the logic easier to understand. It also groups together related functionality, reducing repetition.
+I chose to create `Player`, `Card`, and `CardGroup` model classes because having these abstractions which reflect real objects makes the code easier to read and the logic easier to understand. It also groups together related functionality, reducing code repetition.
 
-I chose to make `CardGroup` a modified HashMap because the O(1) lookup times make it easy to use when checking if a player is making a valid move. Adding an `ordering` to the HashMap also enables easy distribution of the cards in the group to different players via the `distributeTo` function because each removal is also `O(1)` and allows for the `CardGroup` to double as a deck.
+I chose to make `CardGroup` a modified HashMap because the O(1) lookup times make it easy to use when checking if a player is making a valid move. Adding an `ordering` to the HashMap also enables easy distribution of the cards in the group to different players via the `distributeTo` function because each removal is also O(1) and allows for the `CardGroup` to double as a deck.
 
 ### Edge Cases
 - If two people with the same name try to enter a room, the second one is barred from entering
