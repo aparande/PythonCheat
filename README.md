@@ -1,10 +1,18 @@
 # Cheat
 
-A UNIX console based implementation of the card game Cheat built in Python3 using Firebase as a backend.
+A UNIX console based implementation of the card game [Cheat](https://en.wikipedia.org/wiki/Cheat_(game)) built in Python3 using Firebase as a backend.
 
 ## Playing the Game
 ### Setup
-The only requirements for play are a UNIX system with Python3 installed. Upon cloning/downloading the repository, please run install all the necessary packages with pip.
+The only requirements for play are a UNIX system with Python3 installed. 
+
+To download the program, either clone the repository using
+```
+git clone https://github.com/aparande/PythonCheat.git
+```
+or download it from [here](https://github.com/aparande/PythonCheat/archive/master.zip).
+
+Upon cloning/downloading the repository, please run install all the necessary packages with pip.
 ```
 pip3 install -r requirements.txt
 ```
@@ -26,7 +34,7 @@ The next player commences the subsequent round with a card of rank `3`. Gameplay
 ### Tech Stack
 - Game Logic - Python3
 - Database/Server - Google's Firebase
-
+![Tech Stack](images/architecture.png)
 ### Why have a database?
 In Cheat, it is imperative that other players have absolutely no knowledge about the other players' cards. To enforce this requirement, each user plays the game on a different computer. The program coordinates the gameplay between different computers through Firebase's Realtime Database. This provides a layer of separation between players and removes the complex, unintuitive gameplay experience which workarounds such as passwords would necessitate. 
 
@@ -48,6 +56,8 @@ As a scripting language, Python is incredily versatile in the programs it can cr
 ### Utilities
 - `firebaseutils.py`: Firebase utility functions to abstract away the Database implementation
 - `utils.py`: Minor utility functions
+
+![Client structure](images/client.png)
 
 By structuring the code in this way, I reduced the amount of data I needed to store in Firebase and made it easier to handle concurrency. Since each client maintains its own game state through the `Engine`, I do not need to store the entire game (each player and their hands, the pile, etc) in Firebase. Instead I can just update the last card played and have every client update its internal state accordingly.
 
