@@ -49,7 +49,7 @@ As a scripting language, Python is incredily versatile in the programs it can cr
 ### Classes
 - `Card`: A model class to represent cards
 - `CardGroup`: A group of cards which can model a deck, a hand, or the center pile. Uses a HashMap-like implementation to provide O(1) retrieval operations
-- `CheatGame`: The game client which coordinates between the `Engine` and Firebase to show information and take input from the user.
+- `CheatGame`: The game client which coordinates between the `Engine` and Firebase to show information and take input from the user
 - `Engine`: The game engine which each user runs. It manages game rules and controls game flow
 - `Player`: A model object which represents a Player
 - `Stream`: A listener class which listens to updates from Firebase
@@ -65,7 +65,7 @@ The `Stream` class also makes it easier to handle concurrency because I can pass
 
 I chose to create `Player`, `Card`, and `CardGroup` model classes because having these abstractions which reflect real objects makes the code easier to read and the logic easier to understand. It also groups together related functionality, reducing code repetition.
 
-I chose to make `CardGroup` a modified HashMap because the O(1) lookup times make it easy to use when checking if a player is making a valid move. Adding an `ordering` to the HashMap also enables easy distribution of the cards in the group to different players via the `distributeTo` function because each removal is also O(1) and allows for the `CardGroup` to double as a deck.
+I chose to make `CardGroup` a modified HashMap because the O(1) lookup times make it easy to use when checking if a player is making a valid move. Adding an `ordering` to the HashMap also enables easy distribution of the cards in the group to different players via the `distributeTo` function because each removal is also O(1), enabling me to use the `CardGroup` as a deck.
 
 ### Edge Cases
 - If two people with the same name try to enter a room, the second one is barred from entering
